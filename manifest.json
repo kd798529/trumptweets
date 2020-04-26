@@ -1,0 +1,19 @@
+{
+  "name": "Trump tweets",
+  "description" : "Voice of The leader of the free world!",
+  "version": "1.0",
+  "manifest_version": 2,
+  "browser_action": {
+    "default_popup": "index.html"
+  },
+  "background": {
+    "persistent": false,
+    "page": "background.html"
+  },
+  "permissions": [
+    "webNavigation",
+    "notifications",
+    "background",
+    "https://api.twitter.com/"
+  ]
+}
