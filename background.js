@@ -1,11 +1,3 @@
-// const axiosScript = function() {
-//   const script =  document.createElement('script')
-
-//   script.src = 'https://unpkg.com/axios/dist/axios.min.js'
-
-//   document.body.appendChild(script)
-
-// }
 
 
 const lastTrumpTweet = async function() {
@@ -19,10 +11,17 @@ const lastTrumpTweet = async function() {
         Authorization: "Bearer AAAAAAAAAAAAAAAAAAAAAE6HDwEAAAAALNsIg0nkJfY9B2%2BW9py7Xj%2BOf6Q%3D98pVPSRafSdE34Th9l0hdzVBF4VQJ18t0Liape7qQwAjsAoMl3"
       }
     })
+    const tweets = request.data
 
-    console.log(request)
+    if(tweets.length < 1) {
+      throw "insufficient number of tweets"
+    }
 
-    return request.data
+    if(tweets[0].text == null) {
+      throw "Invalid tweet"
+    }
+
+    return tweets
   } catch (error) {
     console.log(error)
     return false
@@ -35,24 +34,17 @@ chrome.runtime.onInstalled.addListener(function() {
   
   chrome.webNavigation.onCompleted.addListener(async function() {
 
-    const tweet = await lastTrumpTweet()
-    console.log(tweet)
+    const tweets = await lastTrumpTweet()
 
-    if(!tweet) {
+    if(!tweets) {
       return false
     }
 
-    if(tweet.length < 1) {
-      return false
-    }
+    console.log(tweets)
 
-    if(tweet[0].text == null) {
-      return false
-    }
-
-    
-
-    const id = tweet[0].id.toFixed()
+    const tweet = tweets[0]
+    const id = tweet.id_str
+    const notificationId = `${tweet.id_str}-${Date.now()}`
 
     if(typeof id != 'string') {
       return false
@@ -64,16 +56,31 @@ chrome.runtime.onInstalled.addListener(function() {
 
     localStorage.setItem('id', id)
 
-
     const options = {
       title : 'trump tweeted', 
-      message: tweet[0].text,
+      message: tweet.text,
       type: 'basic', 
-      iconUrl: './download.jpeg'
+      iconUrl: './download.jpeg',
+      buttons: [
+        {
+          title: "View tweet"
+        }
+      ]
     }
-    chrome.notifications.create(id, options, function() {
-
+    chrome.notifications.create(notificationId, options, function() {
+      
     })
+
+    chrome.notifications.onClicked.addListener(function(notId) {
+      if(notId == notificationId) {
+        const url = `https://twitter.com/realDonaldTrump/status/${id}`
+        chrome.tabs.create({url}, function(tab) {
+
+        })
+      }
+    })
+
+    
   })
 });
 
